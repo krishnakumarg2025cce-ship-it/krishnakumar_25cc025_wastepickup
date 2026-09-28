@@ -34,7 +34,6 @@ public class Household {
     public int getSegregationScore() {
         return segregationScore;
     }
-
     public void setSegregationScore(int segregationScore) {
         this.segregationScore = segregationScore;
     }
