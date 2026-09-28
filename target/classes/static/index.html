@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WastePickup – Waste Collection Schedule and Segregation Score Tracker</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <!-- Custom Styling -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Left Sidebar -->
+  <nav id="sidebar">
+    <div class="sidebar-header">
+      <div class="brand-icon">
+        <i class="bi bi-recycle"></i>
+      </div>
+      <div class="brand-text">
+        <h5>WastePickup</h5>
+        <small>Segregation Tracker</small>
+      </div>
+    </div>
+
+    <ul class="sidebar-menu">
+      <li class="nav-category">Main</li>
+      <li>
+        <a class="nav-link active" data-page="dashboard">
+          <i class="bi bi-grid-1x2-fill"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+      <li>
+        <a class="nav-link" data-page="record-pickup">
+          <i class="bi bi-plus-circle-fill text-success"></i>
+          <span>Record Pickup</span>
+        </a>
+      </li>
+
+      <li class="nav-category">Management</li>
+      <li>
+        <a class="nav-link" data-page="zones">
+          <i class="bi bi-geo-alt-fill"></i>
+          <span>Zones</span>
+        </a>
+      </li>
+      <li>
+        <a class="nav-link" data-page="schedules">
+          <i class="bi bi-calendar3-week"></i>
+          <span>Schedules</span>
+        </a>
+      </li>
+      <li>
+        <a class="nav-link" data-page="households">
+          <i class="bi bi-houses-fill"></i>
+          <span>Households</span>
+        </a>
+      </li>
+
+      <li class="nav-category">Monitoring</li>
+      <li>
+        <a class="nav-link" data-page="pickup-history">
+          <i class="bi bi-clock-history"></i>
+          <span>Pickup History</span>
+        </a>
+      </li>
+      <li>
+        <a class="nav-link" data-page="scores">
+          <i class="bi bi-bar-chart-line-fill"></i>
+          <span>Segregation Scores</span>
+        </a>
+      </li>
+      <li>
+        <a class="nav-link" data-page="reminders">
+          <i class="bi bi-exclamation-triangle-fill text-warning"></i>
+          <span>Reminders</span>
+          <span class="badge bg-danger badge-counter" id="sidebar-reminder-badge">0</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="sidebar-footer">
+      
+
+    </div>
+  </nav>
+
+  <!-- Main Content Area -->
+  <main id="content">
+    <!-- Header -->
+    <header class="top-header">
+      <div class="d-flex align-items-center gap-3">
+        <button class="btn btn-sm btn-outline-secondary d-lg-none" id="toggle-sidebar-btn">
+          <i class="bi bi-list"></i>
+        </button>
+        <div class="header-title">
+          <h4 id="header-page-title">Dashboard</h4>
+          <p id="header-page-subtitle">Overview of waste collection schedules and segregation performance</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <a href="/download" class="btn btn-outline-success btn-sm fw-semibold d-flex align-items-center gap-1" download>
+
+        </a>
+        <div class="live-time-badge d-none d-md-flex">
+          <i class="bi bi-clock"></i>
+          <span id="live-time-display">--:--:--</span>
+        </div>
+        <button class="btn btn-eco-primary btn-sm" onclick="navigateToPage('record-pickup')">
+          <i class="bi bi-plus-lg"></i> Record Pickup
+        </button>
+      </div>
+    </header>
+
+    <!-- Page Container -->
+    <div class="page-container">
+
+      <!-- ======================================================== -->
+      <!-- 1. DASHBOARD VIEW -->
+      <!-- ======================================================== -->
+      <section id="view-dashboard" class="page-view active">
+        <!-- Stats Cards Row -->
+        <div class="row g-3 mb-4">
+          <div class="col-sm-6 col-xl-4">
+            <div class="stats-card">
+              <div class="stat-icon green">
+                <i class="bi bi-geo-alt-fill"></i>
+              </div>
+              <div class="stat-details">
+                <h3 id="stat-total-zones">0</h3>
+                <span>Total Zones</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-xl-4">
+            <div class="stats-card">
+              <div class="stat-icon blue">
+                <i class="bi bi-houses-fill"></i>
+              </div>
+              <div class="stat-details">
+                <h3 id="stat-total-households">0</h3>
+                <span>Total Households</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-xl-4">
+            <div class="stats-card">
+              <div class="stat-icon amber">
+                <i class="bi bi-truck"></i>
+              </div>
+              <div class="stat-details">
+                <h3 id="stat-today-pickups">0</h3>
+                <span>Today's Pickups</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-xl-6">
+            <div class="stats-card">
+              <div class="stat-icon purple">
+                <i class="bi bi-award-fill"></i>
+              </div>
+              <div class="stat-details">
+                <h3 id="stat-overall-avg">0%</h3>
+                <span>Overall Segregation Score</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-xl-6">
+            <div class="stats-card">
+              <div class="stat-icon red">
+                <i class="bi bi-exclamation-octagon-fill"></i>
+              </div>
+              <div class="stat-details">
+                <h3 id="stat-needing-improvement">0</h3>
+                <span>Households Needing Improvement</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts and Breakdown -->
+        <div class="row g-3 mb-4">
+          <div class="col-lg-7">
+            <div class="custom-card h-100">
+              <div class="custom-card-header">
+                <h5><i class="bi bi-bar-chart-fill text-success"></i> Zone-wise Average Segregation Score</h5>
+                <span class="badge bg-light text-dark border">Real-time DB</span>
+              </div>
+              <div class="custom-card-body">
+                <div style="height: 280px; position: relative;">
+                  <canvas id="zoneScoreChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-5">
+            <div class="custom-card h-100">
+              <div class="custom-card-header">
+                <h5><i class="bi bi-speedometer2 text-success"></i> Segregation Target Status</h5>
+              </div>
+              <div class="custom-card-body" id="dashboard-zone-list">
+                <!-- Zone progress items loaded dynamically -->
+                <div class="text-center text-muted py-4">Loading zone scores...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Pickup Activity -->
+        <div class="custom-card">
+          <div class="custom-card-header">
+            <h5><i class="bi bi-clock-history text-success"></i> Recent Pickup Activity</h5>
+            <button class="btn btn-sm btn-link text-success text-decoration-none" onclick="navigateToPage('pickup-history')">
+              View All History <i class="bi bi-arrow-right"></i>
+            </button>
+          </div>
+          <div class="custom-card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-custom">
+                <thead>
+                  <tr>
+                    <th>Household</th>
+                    <th>Zone</th>
+                    <th>Date & Time</th>
+                    <th>Segregation Score</th>
+                    <th>Status</th>
+                    <th>Remarks</th>
+                  </tr>
+                </thead>
+                <tbody id="dashboard-recent-pickups-table">
+                  <tr><td colspan="6" class="text-center py-3 text-muted">Loading recent activity...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- 2. ZONES VIEW -->
+      <!-- ======================================================== -->
+      <section id="view-zones" class="page-view">
+        <div class="custom-card">
+          <div class="custom-card-header">
+            <h5><i class="bi bi-geo-alt-fill text-success"></i> Waste Collection Zones</h5>
+            <button class="btn btn-eco-primary btn-sm" onclick="openAddZoneModal()">
+              <i class="bi bi-plus-circle"></i> Add Zone
+            </button>
+          </div>
+          <div class="custom-card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-custom">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Zone Name</th>
+                    <th>Description</th>
+                    <th>Households</th>
+                    <th>Schedules</th>
+                    <th>Average Score</th>
+                    <th class="text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="zones-table-body">
+                  <tr><td colspan="7" class="text-center py-4 text-muted">Loading zones...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- 3. SCHEDULES VIEW -->
+      <!-- ======================================================== -->
+      <section id="view-schedules" class="page-view">
+        <div class="custom-card">
+          <div class="custom-card-header">
+            <h5><i class="bi bi-calendar3-week text-success"></i> Collection Schedules</h5>
+            <div class="d-flex gap-2">
+              <select class="form-select form-select-sm" id="schedules-zone-filter" onchange="filterSchedules()" style="width: 180px;">
+                <option value="">All Zones</option>
+              </select>
+              <button class="btn btn-eco-primary btn-sm" onclick="openAddScheduleModal()">
+                <i class="bi bi-plus-circle"></i> Add Schedule
+              </button>
+            </div>
+          </div>
+          <div class="custom-card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-custom">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Zone</th>
+                    <th>Pickup Day</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Window Duration</th>
+                    <th class="text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="schedules-table-body">
+                  <tr><td colspan="7" class="text-center py-4 text-muted">Loading schedules...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- 4. HOUSEHOLDS VIEW -->
+      <!-- ======================================================== -->
+      <section id="view-households" class="page-view">
+        <div class="custom-card">
+          <div class="custom-card-header flex-wrap gap-2">
+            <h5><i class="bi bi-houses-fill text-success"></i> Registered Households</h5>
+            <div class="d-flex align-items-center gap-2 flex-grow-1 justify-content-end">
+              <div class="input-group input-group-sm" style="max-width: 250px;">
+                <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control" id="household-search-input" placeholder="Search by name or address..." onkeyup="searchHouseholds()">
+              </div>
+              <select class="form-select form-select-sm" id="household-zone-filter" onchange="filterHouseholdsByZone()" style="max-width: 180px;">
+                <option value="">All Zones</option>
+              </select>
+              <button class="btn btn-eco-primary btn-sm text-nowrap" onclick="openAddHouseholdModal()">
+                <i class="bi bi-plus-circle"></i> Add Household
+              </button>
+            </div>
+          </div>
+          <div class="custom-card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-custom">
+                <thead>
+                  <tr>
+                    <th>Household Name</th>
+                    <th>Address</th>
+                    <th>Zone</th>
+                    <th>Min. Score</th>
+                    <th>Average Score</th>
+                    <th>Latest Score</th>
+                    <th>Current Status</th>
+                    <th class="text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="households-table-body">
+                  <tr><td colspan="8" class="text-center py-4 text-muted">Loading households...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- 5. RECORD PICKUP VIEW -->
+      <!-- ======================================================== -->
+      <section id="view-record-pickup" class="page-view">
+        <div class="row justify-content-center">
+          <div class="col-lg-8">
+            <div class="custom-card">
+              <div class="custom-card-header bg-white">
+                <div>
+                  <h5><i class="bi bi-truck text-success"></i> Record Waste Collection & Segregation Score</h5>
+                  <small class="text-muted">Enter waste pickup details to automatically validate against scheduled time windows</small>
+                </div>
+              </div>
+              <div class="custom-card-body">
+                <form id="record-pickup-form" onsubmit="handleRecordPickup(event)">
+                  <div class="row g-3">
+
+                    <!-- Zone Selection -->
+                    <div class="col-md-6">
+                      <label class="form-label" for="pickup-zone-select">1. Select Zone <span class="text-danger">*</span></label>
+                      <select class="form-select" id="pickup-zone-select" required onchange="onPickupZoneChange()">
+                        <option value="">-- Choose Zone --</option>
+                      </select>
+                      <div class="form-text" id="pickup-zone-schedule-hint">Select a zone to view its pickup schedule.</div>
+                    </div>
+
+                    <!-- Household Selection -->
+                    <div class="col-md-6">
+                      <label class="form-label" for="pickup-household-select">2. Select Household <span class="text-danger">*</span></label>
+                      <select class="form-select" id="pickup-household-select" required>
+                        <option value="">-- Choose Household --</option>
+                      </select>
+                      <div class="form-text">Only households in the selected zone are listed.</div>
+                    </div>
+
+                    <!-- Pickup Date -->
+                    <div class="col-md-6">
+                      <label class="form-label" for="pickup-date-input">3. Pickup Date <span class="text-danger">*</span></label>
+                      <input type="date" class="form-control" id="pickup-date-input" required onchange="checkScheduleWindow()">
+                    </div>
+
+                    <!-- Pickup Time -->
+                    <div class="col-md-6">
+                      <label class="form-label" for="pickup-time-input">4. Pickup Time <span class="text-danger">*</span></label>
+                      <input type="time" class="form-control" id="pickup-time-input" required onchange="checkScheduleWindow()">
+                    </div>
+
+                    <!-- Active Schedule Information Box -->
+                    <div class="col-12">
+                      <div id="schedule-verification-box" class="alert alert-secondary py-2 px-3 small d-flex align-items-center gap-2 mb-0">
+                        <i class="bi bi-info-circle-fill"></i>
+                        <span id="schedule-verification-text">Select zone, date, and time to verify the schedule window.</span>
+                      </div>
+                    </div>
+
+                    <!-- Segregation Score -->
+                    <div class="col-12">
+                      <label class="form-label">5. Segregation Score (0–100) <span class="text-danger">*</span></label>
+                      <div class="row align-items-center g-3">
+                        <div class="col-md-8">
+                          <input type="range" class="form-range" id="pickup-score-slider" min="0" max="100" value="80" oninput="onScoreSliderChange(this.value)">
+                          <div class="d-flex justify-content-between text-muted small">
+                            <span>0 (No Segregation)</span>
+                            <span>60 (Min Target)</span>
+                            <span>100 (Perfect)</span>
+                          </div>
+                        </div>
+                        <div class="col-md-4">
+                          <div class="score-display-box py-2">
+                            <span class="score-display-value" id="pickup-score-value">80</span><span class="fs-5 text-muted">/100</span>
+                            <div id="pickup-score-badge" class="mt-1">
+                              <span class="badge bg-success">Good</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Remarks -->
+                    <div class="col-12">
+                      <label class="form-label" for="pickup-remarks-input">6. Remarks & Observations</label>
+                      <input type="text" class="form-control mb-2" id="pickup-remarks-input" placeholder="e.g. Proper color bags used, dry waste separated">
+                      <!-- Quick Remarks Pills -->
+                      <div class="d-flex flex-wrap gap-1">
+                        <button type="button" class="btn btn-sm btn-outline-secondary py-0" onclick="setRemark('Pristine wet & dry segregation')">Pristine wet & dry segregation</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary py-0" onclick="setRemark('Clean compost and recyclable paper')">Clean compost</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary py-0" onclick="setRemark('Plastic mixed with organic waste')">Plastic contamination</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary py-0" onclick="setRemark('Unseparated wet garbage bag')">Unseparated wet bag</button>
+                      </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="col-12 pt-3">
+                      <button type="submit" class="btn btn-eco-primary btn-lg w-100" id="submit-pickup-btn">
+                        <i class="bi bi-check-circle-fill"></i> Save and Score Waste Pickup
+                      </button>
+                    </div>
+
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- 6. PICKUP HISTORY VIEW -->
+      <!-- ======================================================== -->
+      <section id="view-pickup-history" class="page-view">
+        <div class="custom-card">
+          <div class="custom-card-header flex-wrap gap-2">
+            <h5><i class="bi bi-clock-history text-success"></i> Waste Pickup History</h5>
+            <div class="d-flex gap-2 align-items-center flex-wrap">
+              <input type="text" class="form-control form-control-sm" id="history-search-input" placeholder="Filter by household..." onkeyup="filterPickupHistory()" style="width: 170px;">
+              <select class="form-select form-select-sm" id="history-zone-filter" onchange="filterPickupHistory()" style="width: 150px;">
+                <option value="">All Zones</option>
+              </select>
+              <select class="form-select form-select-sm" id="history-status-filter" onchange="filterPickupHistory()" style="width: 140px;">
+                <option value="">All Statuses</option>
+                <option value="Good">Good</option>
+                <option value="Needs Improvement">Needs Improvement</option>
+              </select>
+              <select class="form-select form-select-sm" id="history-sort-select" onchange="filterPickupHistory()" style="width: 150px;">
+                <option value="date-desc">Newest First</option>
+                <option value="date-asc">Oldest First</option>
+                <option value="score-desc">Highest Score</option>
+                <option value="score-asc">Lowest Score</option>
+              </select>
+            </div>
+          </div>
+          <div class="custom-card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-custom">
+                <thead>
+                  <tr>
+                    <th>Household</th>
+                    <th>Zone</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Segregation Score</th>
+                    <th>Status</th>
+                    <th>Remarks</th>
+                    <th class="text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="pickup-history-table-body">
+                  <tr><td colspan="8" class="text-center py-4 text-muted">Loading pickup logs...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- 7. SEGREGATION SCORES VIEW -->
+      <!-- ======================================================== -->
+      <section id="view-scores" class="page-view">
+        <!-- Zone Averages Cards -->
+        <div class="row g-3 mb-4" id="scores-zone-cards-row">
+          <!-- Populated dynamically -->
+        </div>
+
+        <div class="row g-3">
+          <div class="col-lg-8">
+            <div class="custom-card">
+              <div class="custom-card-header">
+                <h5><i class="bi bi-bar-chart-steps text-success"></i> Zone Segregation Performance Benchmark</h5>
+              </div>
+              <div class="custom-card-body">
+                <div style="height: 320px; position: relative;">
+                  <canvas id="scoresComparisonChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-4">
+            <div class="custom-card">
+              <div class="custom-card-header">
+                <h5><i class="bi bi-info-circle text-success"></i> Scoring Guidelines</h5>
+              </div>
+              <div class="custom-card-body">
+                <div class="mb-3">
+                  <span class="badge bg-success me-2">80 - 100</span>
+                  <strong>Optimal Segregation</strong>
+                  <p class="text-muted small mb-0 mt-1">Wet and dry waste strictly segregated in color-coded receptacles with zero contamination.</p>
+                </div>
+                <div class="mb-3">
+                  <span class="badge bg-primary me-2">60 - 79</span>
+                  <strong>Acceptable Standard</strong>
+                  <p class="text-muted small mb-0 mt-1">Meets municipal minimum requirement; minor non-hazardous sorting flaws.</p>
+                </div>
+                <div>
+                  <span class="badge bg-danger me-2">0 - 59</span>
+                  <strong>Needs Improvement</strong>
+                  <p class="text-muted small mb-0 mt-1">Contaminated garbage, unseparated plastics or food waste; triggers reminder alerts.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- 8. REMINDERS VIEW -->
+      <!-- ======================================================== -->
+      <section id="view-reminders" class="page-view">
+        <!-- Warning Banner -->
+        <div class="reminder-banner">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          <div>
+            <h6 class="fw-bold mb-1 text-dark">Waste Segregation Action Required</h6>
+            <p class="mb-0 text-muted small">The households listed below have logged scores below the municipal compliance threshold (Default 60%). Active collector notices and guidance must be issued.</p>
+          </div>
+        </div>
+
+        <div class="custom-card">
+          <div class="custom-card-header">
+            <h5><i class="bi bi-bell-fill text-warning"></i> Households Flagged for Improvement</h5>
+            <span class="badge bg-danger" id="reminders-count-badge">0 Flagged</span>
+          </div>
+          <div class="custom-card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-custom">
+                <thead>
+                  <tr>
+                    <th>Household</th>
+                    <th>Zone</th>
+                    <th>Latest Score</th>
+                    <th>Average Score</th>
+                    <th>Status</th>
+                    <th>Date Flagged</th>
+                    <th>Reminder Message</th>
+                    <th class="text-end">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="reminders-table-body">
+                  <tr><td colspan="8" class="text-center py-4 text-muted">Checking reminders...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ======================================================== -->
+  <!-- MODALS -->
+  <!-- ======================================================== -->
+
+  <!-- Add/Edit Zone Modal -->
+  <div class="modal fade" id="zoneModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form id="zoneForm" onsubmit="handleSaveZone(event)">
+          <div class="modal-header">
+            <h5 class="modal-title" id="zoneModalTitle">Add New Zone</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="zone-id-input">
+            <div class="mb-3">
+              <label class="form-label" for="zone-name-input">Zone Name <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="zone-name-input" required placeholder="e.g. Zone D - Lakeside">
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="zone-desc-input">Description</label>
+              <textarea class="form-control" id="zone-desc-input" rows="3" placeholder="Brief details about residential/commercial sector"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-eco-primary btn-sm">Save Zone</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit Schedule Modal -->
+  <div class="modal fade" id="scheduleModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form id="scheduleForm" onsubmit="handleSaveSchedule(event)">
+          <div class="modal-header">
+            <h5 class="modal-title" id="scheduleModalTitle">Add Collection Schedule</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="schedule-id-input">
+            <div class="mb-3">
+              <label class="form-label" for="schedule-zone-input">Zone <span class="text-danger">*</span></label>
+              <select class="form-select" id="schedule-zone-input" required>
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="schedule-day-input">Pickup Day <span class="text-danger">*</span></label>
+              <select class="form-select" id="schedule-day-input" required>
+                <option value="MONDAY">Monday</option>
+                <option value="TUESDAY">Tuesday</option>
+                <option value="WEDNESDAY">Wednesday</option>
+                <option value="THURSDAY">Thursday</option>
+                <option value="FRIDAY">Friday</option>
+                <option value="SATURDAY">Saturday</option>
+                <option value="SUNDAY">Sunday</option>
+              </select>
+            </div>
+            <div class="row g-2 mb-3">
+              <div class="col-6">
+                <label class="form-label" for="schedule-start-input">Start Time <span class="text-danger">*</span></label>
+                <input type="time" class="form-control" id="schedule-start-input" required>
+              </div>
+              <div class="col-6">
+                <label class="form-label" for="schedule-end-input">End Time <span class="text-danger">*</span></label>
+                <input type="time" class="form-control" id="schedule-end-input" required>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-eco-primary btn-sm">Save Schedule</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit Household Modal -->
+  <div class="modal fade" id="householdModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form id="householdForm" onsubmit="handleSaveHousehold(event)">
+          <div class="modal-header">
+            <h5 class="modal-title" id="householdModalTitle">Add New Household</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="household-id-input">
+            <div class="mb-3">
+              <label class="form-label" for="household-name-input">Household Name <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="household-name-input" required placeholder="e.g. Greenwood Villa - Johnson Family">
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="household-address-input">Address <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="household-address-input" required placeholder="e.g. 52 Pine Street, Apt 3B">
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="household-zone-input">Zone <span class="text-danger">*</span></label>
+              <select class="form-select" id="household-zone-input" required>
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="household-minscore-input">Minimum Segregation Score Target</label>
+              <input type="number" class="form-control" id="household-minscore-input" min="0" max="100" value="60" required>
+              <div class="form-text">Default municipal baseline is 60%. Below this, household is marked "Needs Improvement".</div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-eco-primary btn-sm">Save Household</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Household Details Modal -->
+  <div class="modal fade" id="householdDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="bi bi-house-door-fill text-success"></i> Household Profile & Segregation History</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="household-details-body">
+          <!-- Populated dynamically -->
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 2000;">
+    <div id="liveToast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body" id="toast-message">
+          Operation completed successfully!
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap 5 JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Main Application Script -->
+  <script src="js/app.js"></script>
+</body>
+</html>
